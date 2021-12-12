@@ -23,25 +23,30 @@ class CheckLastEventStatus {
   }
 }
 
+type SUTOutput = {
+  systemUnderTest: CheckLastEventStatus;
+  loadLastEventRepository: LoadLastEventRepositorySpy;
+};
+
+const makeSUT = (): SUTOutput => {
+  const loadLastEventRepository = new LoadLastEventRepositorySpy();
+  const systemUnderTest = new CheckLastEventStatus(loadLastEventRepository);
+  return { systemUnderTest, loadLastEventRepository };
+};
+
 describe("CheckLastEventStatus", () => {
   it("should get last event data", async () => {
-    const loadLastEventRepositoryMock = new LoadLastEventRepositorySpy();
-    const systemUnderTest = new CheckLastEventStatus(
-      loadLastEventRepositoryMock
-    );
+    const { systemUnderTest, loadLastEventRepository } = makeSUT();
 
     await systemUnderTest.execute("any_group_id");
 
-    expect(loadLastEventRepositoryMock.groupId).toBe("any_group_id");
-    expect(loadLastEventRepositoryMock.callsCount).toBe(1);
+    expect(loadLastEventRepository.groupId).toBe("any_group_id");
+    expect(loadLastEventRepository.callsCount).toBe(1);
   });
 
   it("should return ststus done when group has no event", async () => {
-    const loadLastEventRepositoryMock = new LoadLastEventRepositorySpy();
-    loadLastEventRepositoryMock.output = undefined;
-    const systemUnderTest = new CheckLastEventStatus(
-      loadLastEventRepositoryMock
-    );
+    const { systemUnderTest, loadLastEventRepository } = makeSUT();
+    loadLastEventRepository.output = undefined;
 
     const status = await systemUnderTest.execute("any_group_id");
 
