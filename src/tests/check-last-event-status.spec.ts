@@ -137,4 +137,18 @@ describe("CheckLastEventStatus", () => {
 
     expect(eventStatus.status).toBe("InReview");
   });
+
+  it("should return status inReview when now is equal event review time", async () => {
+    const reviewDurationInHours = 1;
+    const reviewDurationInMs = 1 * 60 * 60 * 1000;
+    const { systemUnderTest, loadLastEventRepository } = makeSUT();
+    loadLastEventRepository.output = {
+      endDate: new Date(new Date().getTime() - reviewDurationInMs),
+      reviewDurationInHours,
+    };
+
+    const eventStatus = await systemUnderTest.execute({ groupId });
+
+    expect(eventStatus.status).toBe("InReview");
+  });
 });
