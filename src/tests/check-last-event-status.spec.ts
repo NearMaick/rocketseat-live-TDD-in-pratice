@@ -1,7 +1,9 @@
 class LoadLastEventRepositoryMock implements ILoadLastEventRepository {
   groupId?: string;
+  callsCount = 0;
   async loadLastEvent(groupId: string): Promise<void> {
     this.groupId = groupId;
+    this.callsCount += 1;
   }
 }
 
@@ -28,5 +30,6 @@ describe("CheckLastEventStatus", () => {
     await checkLastEventStatus.execute("any_group_id");
 
     expect(loadLastEventRepositoryMock.groupId).toBe("any_group_id");
+    expect(loadLastEventRepositoryMock.callsCount).toBe(1);
   });
 });
