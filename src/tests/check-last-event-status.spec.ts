@@ -53,7 +53,10 @@ class CheckLastEventStatus {
     const event = await this.loadLastEventRepository.loadLastEvent({ groupId });
     if (event === undefined) return { status: "done" };
     const now = new Date();
-    return event.endDate >= now ? { status: "active" } : { status: "InReview" };
+    if (event.endDate >= now) return { status: "active" };
+    const reviewDurationInMs = event.reviewDurationInHours * 60 * 60 * 1000;
+    const reviewDate = new Date(event.endDate.getTime() + reviewDurationInMs);
+    return reviewDate >= now ? { status: "inReview" } : { status: "done" };
   }
 }
 
@@ -121,7 +124,7 @@ describe("CheckLastEventStatus", () => {
 
     const eventStatus = await systemUnderTest.execute({ groupId });
 
-    expect(eventStatus.status).toBe("InReview");
+    expect(eventStatus.status).toBe("inReview");
   });
 
   it("should return status inReview when now is before event review time", async () => {
@@ -135,7 +138,7 @@ describe("CheckLastEventStatus", () => {
 
     const eventStatus = await systemUnderTest.execute({ groupId });
 
-    expect(eventStatus.status).toBe("InReview");
+    expect(eventStatus.status).toBe("inReview");
   });
 
   it("should return status inReview when now is equal event review time", async () => {
@@ -149,6 +152,20 @@ describe("CheckLastEventStatus", () => {
 
     const eventStatus = await systemUnderTest.execute({ groupId });
 
-    expect(eventStatus.status).toBe("InReview");
+    expect(eventStatus.status).toBe("inReview");
+  });
+
+  it("should return status done when now is after review time", async () => {
+    const reviewDurationInHours = 1;
+    const reviewDurationInMs = 1 * 60 * 60 * 1000;
+    const { systemUnderTest, loadLastEventRepository } = makeSUT();
+    loadLastEventRepository.output = {
+      endDate: new Date(new Date().getTime() - reviewDurationInMs - 1),
+      reviewDurationInHours,
+    };
+
+    const eventStatus = await systemUnderTest.execute({ groupId });
+
+    expect(eventStatus.status).toBe("done");
   });
 });
