@@ -1,5 +1,7 @@
 import { set, reset } from "mockdate";
 
+type EventStatus = { status: string };
+
 class LoadLastEventRepositorySpy implements ILoadLastEventRepository {
   groupId?: string;
   callsCount = 0;
@@ -25,11 +27,11 @@ class CheckLastEventStatus {
   constructor(
     private readonly loadLastEventRepository: ILoadLastEventRepository
   ) {}
-  async execute({ groupId }: { groupId: string }): Promise<string> {
+  async execute({ groupId }: { groupId: string }): Promise<EventStatus> {
     const event = await this.loadLastEventRepository.loadLastEvent({ groupId });
-    if (event === undefined) return "done";
+    if (event === undefined) return { status: "done" };
     const now = new Date();
-    return event.endDate > now ? "active" : "InReview";
+    return event.endDate > now ? { status: "active" } : { status: "InReview" };
   }
 }
 
@@ -68,9 +70,9 @@ describe("CheckLastEventStatus", () => {
     const { systemUnderTest, loadLastEventRepository } = makeSUT();
     loadLastEventRepository.output = undefined;
 
-    const status = await systemUnderTest.execute({ groupId });
+    const eventStatus = await systemUnderTest.execute({ groupId });
 
-    expect(status).toBe("done");
+    expect(eventStatus.status).toBe("done");
   });
 
   it("should return status active when now is before event end time", async () => {
@@ -79,9 +81,9 @@ describe("CheckLastEventStatus", () => {
       endDate: new Date(new Date().getTime() + 1),
     };
 
-    const status = await systemUnderTest.execute({ groupId });
+    const eventStatus = await systemUnderTest.execute({ groupId });
 
-    expect(status).toBe("active");
+    expect(eventStatus.status).toBe("active");
   });
 
   it("should return status inReview when now is after event end time", async () => {
@@ -90,8 +92,8 @@ describe("CheckLastEventStatus", () => {
       endDate: new Date(new Date().getTime() - 1),
     };
 
-    const status = await systemUnderTest.execute({ groupId });
+    const eventStatus = await systemUnderTest.execute({ groupId });
 
-    expect(status).toBe("InReview");
+    expect(eventStatus.status).toBe("InReview");
   });
 });
