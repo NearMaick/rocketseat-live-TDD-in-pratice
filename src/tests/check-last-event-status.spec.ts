@@ -1,26 +1,32 @@
-class CheckLastEventStatus {
-  constructor(
-    private readonly loadLastEventRepository: LoadLastEventRepository
-  ) {}
-
-  async execute(groupId: string) {
-    this.loadLastEventRepository.groupId = groupId;
+class LoadLastEventRepositoryMock implements ILoadLastEventRepository {
+  groupId?: string;
+  async loadLastEvent(groupId: string): Promise<void> {
+    this.groupId = groupId;
   }
 }
 
-class LoadLastEventRepository {
-  groupId?: string;
+interface ILoadLastEventRepository {
+  loadLastEvent: (groupId: string) => Promise<void>;
+}
+
+class CheckLastEventStatus {
+  constructor(
+    private readonly loadLastEventRepository: ILoadLastEventRepository
+  ) {}
+  async execute(groupId: string) {
+    await this.loadLastEventRepository.loadLastEvent(groupId);
+  }
 }
 
 describe("CheckLastEventStatus", () => {
   it("should get last event data", async () => {
-    const loadLastEventRepository = new LoadLastEventRepository();
+    const loadLastEventRepositoryMock = new LoadLastEventRepositoryMock();
     const checkLastEventStatus = new CheckLastEventStatus(
-      loadLastEventRepository
+      loadLastEventRepositoryMock
     );
 
     await checkLastEventStatus.execute("any_group_id");
 
-    expect(loadLastEventRepository.groupId).toBe("any_group_id");
+    expect(loadLastEventRepositoryMock.groupId).toBe("any_group_id");
   });
 });
