@@ -64,7 +64,7 @@ describe("CheckLastEventStatus", () => {
     expect(loadLastEventRepository.callsCount).toBe(1);
   });
 
-  it("should return ststus done when group has no event", async () => {
+  it("should return status done when group has no event", async () => {
     const { systemUnderTest, loadLastEventRepository } = makeSUT();
     loadLastEventRepository.output = undefined;
 
@@ -73,7 +73,7 @@ describe("CheckLastEventStatus", () => {
     expect(status).toBe("done");
   });
 
-  it("should return ststus active when now is before event end time", async () => {
+  it("should return status active when now is before event end time", async () => {
     const { systemUnderTest, loadLastEventRepository } = makeSUT();
     loadLastEventRepository.output = {
       endDate: new Date(new Date().getTime() + 1),
@@ -84,7 +84,7 @@ describe("CheckLastEventStatus", () => {
     expect(status).toBe("active");
   });
 
-  it("should return ststus inReview when now is after event end time", async () => {
+  it("should return status inReview when now is after event end time", async () => {
     const { systemUnderTest, loadLastEventRepository } = makeSUT();
     loadLastEventRepository.output = {
       endDate: new Date(new Date().getTime() - 1),
